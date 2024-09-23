@@ -72,7 +72,6 @@ def mostrar_negs(id,categoria=None):
     return render_template("negocios.html",cliente=cliente_l,negocios=negocios_l,categoria=categoria)
 
 @app.route("/buscar/<id>/",methods=['GET','POST'])
-#@app.route("/buscar/<id>/<categoria>/",methods=['GET','POST'])
 def buscar (id):    
     id=int(id)
     criterio=request.values.get("search")
