@@ -344,7 +344,6 @@ def detallePedido (idNeg,idPedido):
     print(pedido[0]["productos"])
     productos=list(productos)
     negocio=negocios.find({"_id":idNeg})
-   # total=calcularTotal()
     return render_template("DetallePedido.html",negocio=negocio,productos=productos)
 ##############################################################################################
 
