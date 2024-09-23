@@ -25,16 +25,16 @@ DicProductos = {}
 def login ():
 
     if request.method =='POST':
-        id=request.values.get("ci_usuario")
-        id=int(id)
+        ci_usuario=request.values.get("ci_usuario")
+        id_usuario=int(ci_usuario)
         passw=request.values.get("contra_usuario")
-        cliente=clientes.find({"_id":id})
+        cliente=clientes.find({"_id":id_usuario})
         lista_cliente=list(cliente)
         #print(len(lista_cliente))
         if len(lista_cliente)!= 0:
-            cliente=clientes.find({"_id":id})
-            if(cliente[0]["_id"]==id and cliente[0]["contraCli"]==passw): #validaciones
-                return redirect("/mostrarCats/"+format(id))
+            cliente=clientes.find({"_id":id_usuario})
+            if(cliente[0]["_id"]==id_usuario and cliente[0]["contraCli"]==passw): #validaciones
+                return redirect("/mostrarCats/"+format(id_usuario))
             else:
                 return redirect("/") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
         else:
@@ -43,8 +43,8 @@ def login ():
 
 @app.route("/mostrarCats/<id>/", methods=['GET','POST'])
 def mostrarCats(id):
-    id=int(id)
-    cliente_l=clientes.find({"_id":id})
+    id_usuario=int(id)
+    cliente_l=clientes.find({"_id":id_usuario})
     #print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
     return render_template("Categorias.html",cliente=cliente_l)
 
