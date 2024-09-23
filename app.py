@@ -128,11 +128,10 @@ def leerProducto(idCli,idNeg,idProd,cantidad,estado):
                 arry=[cantidad,precioProd,prodNom]
                 DicProductos[idProd] = arry
     elif(cantidad==-1):
-        if(len(DicProductos)>0 and idProd in DicProductos):    
-            if(DicProductos[idProd][0]>1):
-                DicProductos[idProd][0]+=cantidad
-            else:
-                DicProductos.pop(idProd)
+        if(len(DicProductos)>0 and idProd in DicProductos and DicProductos[idProd][0]>1):
+            DicProductos[idProd][0]+=cantidad
+        else:
+            DicProductos.pop(idProd)
     print(DicProductos) 
     return redirect(request.referrer)
 
