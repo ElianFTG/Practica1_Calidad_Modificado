@@ -42,14 +42,14 @@ def login ():
     return render_template("IniciarSesion.html")
 
 @app.route("/mostrarCats/<id>/", methods=['GET','POST'])
-def mostrarCats(id):
+def mostrar_cats(id):
     id_usuario=int(id)
     cliente_l=clientes.find({"_id":id_usuario})
     #print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
     return render_template("Categorias.html",cliente=cliente_l)
 
 @app.route("/datosCliente/<id>/", methods=['GET','POST'])
-def datosCliente(id):
+def datos_cliente(id):
     id=int(id)
     cliente_l=clientes.find({"_id":id})
     print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
@@ -57,7 +57,7 @@ def datosCliente(id):
 
 @app.route("/mostrarNegs/<id>/",methods=['GET','POST']) #get para mandar 
 @app.route("/mostrarNegs/<id>/<categoria>/",methods=['GET','POST']) #get para mandar 
-def mostrarNegs(id,categoria=None):
+def mostrar_negs(id,categoria=None):
     DicProductos.clear()
     #print("Id: ",id)
     id=int(id)
@@ -119,7 +119,6 @@ def leerProducto(idCli,idNeg,idProd,cantidad,estado):
                 idProd = float(idProd)
                 cantidad = int(cantidad)
                 pipeline = [{"$match":{"_id":idNeg}},{"$unwind":'$Productos'},{"$match":{"Productos.codProd":idProd}},{"$project":{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
-                #producto=negocios.aggregate(pipeline)
                 producto=list(negocios.aggregate(pipeline))
                 for produ in producto:
                     #print(produ["NombreProd"])
@@ -137,18 +136,6 @@ def leerProducto(idCli,idNeg,idProd,cantidad,estado):
                     DicProductos.pop(idProd)
     print(DicProductos) 
     return redirect(request.referrer)
-
-# @app.route("/buscarProducto/<idNeg>/",methods=['GET','POST'])
-# def buscarProd (id):    
-#     id=int(id)
-#     criterio=request.values.get("search")
-#     categoria=request.values.get("categoria")
-#     negocios=negocios.find({"_id":id})
-#     if(categoria != None):
-#         negocios_l=negocios.find({"Nombre":criterio,"Categoria":categoria})
-#     else:
-#         negocios_l=negocios.find({"Nombre":criterio})
-#     return render_template("Productos.html",cliente=cliente,negocios=negocios_l)
 
 ###################################################################################
 
