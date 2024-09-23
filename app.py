@@ -343,7 +343,6 @@ def detallePedido (idNeg,idPedido):
     productos=pedido[0]["productos"]
     print(pedido[0]["productos"])
     productos=list(productos)
-    #cliente=listapedido.cliente
     negocio=negocios.find({"_id":idNeg})
    # total=calcularTotal()
     return render_template("DetallePedido.html",negocio=negocio,productos=productos)
