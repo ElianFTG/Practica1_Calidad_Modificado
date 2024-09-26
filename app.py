@@ -3,12 +3,13 @@ from flask import Flask, render_template,request,redirect,url_for,session,flash 
 from bson import ObjectId # For ObjectId to work
 from pymongo import MongoClient
 import os
+from dotenv import load_dotenv
 
 
 
 app = Flask(__name__)
 #parametro 
-app.secret_key='grupo4'
+app.secret_key=os.getenv('key')
 titulo = "PROYECTO"
 encabezado = " Iniciar Sesion "
 
