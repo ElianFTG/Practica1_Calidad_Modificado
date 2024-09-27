@@ -104,36 +104,51 @@ def validarProducto(estado):
     else:
         return True
                       
+
+def remover_producto(idProd, cantidad):
+    if(len(DicProductos)>0 and idProd in DicProductos and DicProductos[idProd][0]>1):
+            DicProductos[idProd][0]+=cantidad
+    else:
+        DicProductos.pop(idProd)
+
+def actualizar_cantidad(idProd, cantidad):
+    ar = DicProductos[idProd]
+    ar[0]+=cantidad
+    DicProductos[idProd]=ar
+    
+
+def agregar_nuevo_producto(idCli, idNeg, idProd, cantidad):
+    idCli=int(idCli)
+    idNeg=float(idNeg)
+    negocio_p=negocios.find({"_id":idNeg})
+    prodNom=negocio_p[0]["Nombre"]
+    idProd = float(idProd)
+    cantidad = int(cantidad)
+    pipeline = [{"$match":{"_id":idNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$match":{"Productos.codProd":idProd}},{"$project":{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
+    producto=list(negocios.aggregate(pipeline))
+    for produ in producto:
+        #print(produ["NombreProd"])
+        prodNom=produ["NombreProd"]
+        precioProd=produ["Precio"]
+    print(prodNom,precioProd)
+    arry=[cantidad,precioProd,prodNom]
+    DicProductos[idProd] = arry
+
+def agregar_producto(idProd, cantidad, estado, idCli, idNeg):
+    if (validarProducto(estado) == True and idProd in DicProductos):
+        actualizar_cantidad(idProd, cantidad)
+    else:
+        agregar_nuevo_producto(idCli, idNeg, idProd, cantidad)
+
+        
+
 @app.route("/AgregarProd/<idCli>/<float:idNeg>/<float:idProd>/<cantidad>/<estado>",methods=['GET','POST'])   
 def leerProducto(idCli,idNeg,idProd,cantidad,estado):
     cantidad=int(cantidad)
     if(cantidad==1):
-        if (validarProducto(estado) == True):
-            if idProd in DicProductos:
-                ar = DicProductos[idProd]
-                ar[0]+=cantidad
-                DicProductos[idProd]=ar
-            else:
-                idCli=int(idCli)
-                idNeg=float(idNeg)
-                negocio_p=negocios.find({"_id":idNeg})
-                prodNom=negocio_p[0]["Nombre"]
-                idProd = float(idProd)
-                cantidad = int(cantidad)
-                pipeline = [{"$match":{"_id":idNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$match":{"Productos.codProd":idProd}},{"$project":{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
-                producto=list(negocios.aggregate(pipeline))
-                for produ in producto:
-                    #print(produ["NombreProd"])
-                    prodNom=produ["NombreProd"]
-                    precioProd=produ["Precio"]
-                print(prodNom,precioProd)
-                arry=[cantidad,precioProd,prodNom]
-                DicProductos[idProd] = arry
+        agregar_producto(idProd, cantidad, estado, idCli, idNeg)
     elif(cantidad==-1):
-        if(len(DicProductos)>0 and idProd in DicProductos and DicProductos[idProd][0]>1):
-            DicProductos[idProd][0]+=cantidad
-        else:
-            DicProductos.pop(idProd)
+        remover_producto(idProd, cantidad)
     print(DicProductos) 
     return redirect(request.referrer)
 
