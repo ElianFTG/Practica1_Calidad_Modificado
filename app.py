@@ -17,6 +17,12 @@ titulo = "PROYECTO"
 encabezado = " Iniciar Sesion "
 
 PRODUCTOS_COLLECTION = '$Productos'
+pipeline_match = "$match"
+consulta_project = "$project"
+pipeline_unwind = "$unwind"
+mensaje_registrado_exitoso = "Registrado con exito"
+mensaje_update_exitoso = "Update con exito"
+direccion_pedidos_disponibles = "/mostrarPedidosDisp/"
 
 conex = MongoClient("mongodb://127.0.0.1:27017") #host uri
 bd = conex.Prueba_Proyecto_Final   #Select the database
@@ -99,7 +105,7 @@ def mostrarProds (idCli,idNeg):
     idNeg = float(idNeg)
     cliente_p=clientes.find({"_id":idCli})
     negocio_p=negocios.find({"_id":idNeg})
-    pipeline = [{"$match":{"_id":idNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$match":{"Productos.Estado":"Disponible"}},{"$project":{"_id":0,"Productos":1}}]  
+    pipeline = [{pipeline_match:{"_id":idNeg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.Estado":"Disponible"}},{pipeline_match:{"_id":0,"Productos":1}}]  
     productos_p=list(negocios.aggregate(pipeline))
     return render_template("Productos.html",cliente=cliente_p,negocio=negocio_p,productos=productos_p)
 
@@ -129,7 +135,7 @@ def agregar_nuevo_producto(idCli, idNeg, idProd, cantidad):
     prodNom=negocio_p[0]["Nombre"]
     idProd = float(idProd)
     cantidad = int(cantidad)
-    pipeline = [{"$match":{"_id":idNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$match":{"Productos.codProd":idProd}},{"$project":{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
+    pipeline = [{pipeline_match:{"_id":idNeg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.codProd":idProd}},{consulta_project:{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
     producto=list(negocios.aggregate(pipeline))
     for produ in producto:
         #print(produ["NombreProd"])
@@ -226,7 +232,7 @@ def insertar ():
         celular=int(celular)
         contra=request.values.get("contra_usuario")
         clientes.insert_one({"_id":ci,"nombreCli":nombre,"apellidoCli":apellido,"celular":celular,"contraCli":contra})
-        print("Registrado con exito")
+        print(mensaje_registrado_exitoso)
         return redirect("/")
     else:
         return redirect("/registrar")
@@ -243,7 +249,7 @@ def update():
     print(ci,nombre,apellido,celular,contra)
     clientes.update_one({"_id":ci},{"$set":{"nombreCli":nombre,"apellidoCli":apellido,"celular":celular,"contraCli":contra}})
     #clientes.update({"_id":ci},{"$set":{"nombreCli":nombre,"apellidoCli":apellido,"celular":celular,"contraCli":contra}})
-    print("Update con exito")
+    print(mensaje_update_exitoso)
     return redirect("/datosCliente/"+format(ci))
 
 ################################# VISTA NEGOCIO ############################################
@@ -283,7 +289,7 @@ def insertarNegocio ():
         cont=contador.find({"_id":1})
         valor=cont[0]["contador2"]
         negocios.insert_one({"_id":valor,"Nombre":nombreNeg,"Categoria":categ,"contraNeg":contra,"Productos":[]})
-        print("Registrado con exito")
+        print(mensaje_registrado_exitoso)
         return redirect("/loginNeg")
     else:
         return redirect("/registrarNeg")
@@ -291,7 +297,7 @@ def insertarNegocio ():
 @app.route("/mostrarProdsNeg/<nombreNeg>/",methods=['GET'])
 def mostrarProductosNegocio (nombreNeg):  
     negocio_p=negocios.find({"Nombre":nombreNeg})
-    pipeline = [{"$match":{"Nombre":nombreNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$project":{"_id":0,"Productos":1}}]  
+    pipeline = [{pipeline_match:{"Nombre":nombreNeg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{consulta_project:{"_id":0,"Productos":1}}]  
     productos_p=list(negocios.aggregate(pipeline))
     return render_template("ProductosNegocio.html",negocio=negocio_p,productos=productos_p)
   
@@ -330,7 +336,7 @@ def updateNegocio():
     contra=request.values.get("contra")
     negocios.update_one({"_id":idNeg},{"$set":{"Nombre":nombre,"Categoria":categoria,"contraNeg":contra}})
     #clientes.update({"_id":ci},{"$set":{"nombreCli":nombre,"apellidoCli":apellido,"celular":celular,"contraCli":contra}})
-    print("Update con exito")
+    print(mensaje_update_exitoso)
     return redirect("/datosNegocio/"+format(nombre))
 
 @app.route("/insertarProducto/<nombreNeg>/",methods=['POST']) #post para recibir 
@@ -395,7 +401,7 @@ def actualizarEstadoRepartidor(idPedido,idRep,estadoPed,estadoRep):
     estadoPed=validarEstadoPed(estadoPed)
     repartidores.update_one({"_id":idRep},{"$set":{"estado":estadoRep}})
     pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
-    return redirect("/mostrarPedidosDisp/"+format(idRep))
+    return redirect(direccion_pedidos_disponibles+format(idRep))
 
 @app.route("/finalizarPedido/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['POST'])
 def finalizarPedido(idPedido,idRep,estadoPed,estadoRep):  
@@ -405,7 +411,7 @@ def finalizarPedido(idPedido,idRep,estadoPed,estadoRep):
     estadoPed=validarEstadoPed(estadoPed)
     repartidores.update_one({"_id":idRep},{"$set":{"estado":estadoRep}})
     pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
-    return redirect("/mostrarPedidosDisp/"+format(idRep))
+    return redirect(direccion_pedidos_disponibles+format(idRep))
 
 # Ruta para mostrar el formulario de inicio de sesión del repartidor (GET)
 @app.route("/loginRep", methods=['GET'])
@@ -424,7 +430,7 @@ def loginRepartidor():
         repartidor=repartidores.find({"_id":_id})
         if(repartidor[0]["_id"]==_id and repartidor[0]["contra"]==passw):#validaciones
             #print("Id: ",cliente[0]["_id"]," pass:",cliente[0]["contraCli"])
-            return redirect("/mostrarPedidosDisp/"+format(_id))
+            return redirect(direccion_pedidos_disponibles+format(_id))
         else:
             #mensaje="Usuario o contraseña incorrectos, vuelva a ingresar sus datos o registrese!"
             #flash(mensaje,"ERROR")
@@ -450,7 +456,7 @@ def insertarRepartidor ():
         celular=int(celular)
         contra=request.values.get("contra_usuario")
         repartidores.insert_one({"_id":ci,"Nombre":nombre,"Apellido":apellido,"celular":celular,"contra":contra,"estado":"D"})
-        print("Registrado con exito")
+        print(mensaje_registrado_exitoso)
         return redirect("/loginRep")
     else:
         return redirect("/registrarRep")
@@ -473,7 +479,7 @@ def updateRep():
     contra=request.values.get("contra_repartidor")
     print(ci,nombre,apellido,celular,contra)
     repartidores.update_one({"_id":ci},{"$set":{"Nombre":nombre,"Apellido":apellido,"celular":celular,"contra":contra}})
-    print("Update con exito")
+    print(mensaje_update_exitoso)
     return redirect("/datosRepartidor/"+format(ci))
 
 
