@@ -255,7 +255,6 @@ def loginNegocio ():
             if(negocio[0]["Nombre"]==nombreNeg and negocio[0]["contraNeg"]==passw): #validaciones
                 return redirect("/mostrarProdsNeg/"+format(nombreNeg)) #implementar
             else:
-                #mensaje="Usuario o contraseña incorrectos, vuelva a ingresar sus datos o registrese!"
                 #flash(mensaje,"ERROR")
                 return redirect("/loginNeg") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
         else:
@@ -344,9 +343,7 @@ def insertarProducto (nombreNeg):
 def pedidosNeg (idNeg):    
     idNeg=float(idNeg)
     listapedido=list(pedidos.find({"negocioId":idNeg}))
-    #cliente=listapedido.cliente
     negocio=negocios.find({"_id":idNeg})
-   # total=calcularTotal()
     return render_template("PedidosNegocio.html",pedidos=listapedido,negocio=negocio)
 
 
@@ -418,7 +415,6 @@ def loginRepartidor():
                 #print("Id: ",cliente[0]["_id"]," pass:",cliente[0]["contraCli"])
                 return redirect("/mostrarPedidosDisp/"+format(_id))
             else:
-                #mensaje="Usuario o contraseña incorrectos, vuelva a ingresar sus datos o registrese!"
                 #flash(mensaje,"ERROR")
                 return redirect("/loginRep") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
         else:
