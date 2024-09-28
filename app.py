@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template,request,redirect,url_for,session,flash # For flask implementation
+from flask_wtf.csrf import CSRFProtect
 from bson import ObjectId # For ObjectId to work
 from pymongo import MongoClient
 import os
@@ -8,6 +9,8 @@ from dotenv import load_dotenv
 
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app) # Compliant
 #parametro 
 app.secret_key=os.getenv('key')
 titulo = "PROYECTO"
@@ -24,42 +27,44 @@ pedidos=bd.pedidos
 contador=bd.contador  
 DicProductos = {}
 
-@app.route("/",methods=['GET','POST']) #get para mandar 
-def login ():
-
-    if request.method =='POST':
-        ci_usuario=request.values.get("ci_usuario")
-        id_usuario=int(ci_usuario)
-        passw=request.values.get("contra_usuario")
-        cliente=clientes.find({"_id":id_usuario})
-        lista_cliente=list(cliente)
-        #print(len(lista_cliente))
-        if len(lista_cliente)!= 0:
-            cliente=clientes.find({"_id":id_usuario})
-            if(cliente[0]["_id"]==id_usuario and cliente[0]["contraCli"]==passw): #validaciones
-                return redirect("/mostrarCats/"+format(id_usuario))
-            else:
-                return redirect("/") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
-        else:
-            return redirect("/")
+@app.route("/", methods=['GET'])
+def mostrar_login():
     return render_template("IniciarSesion.html")
 
-@app.route("/mostrarCats/<id>/", methods=['GET','POST'])
+@app.route("/login", methods=['POST'])
+def login():
+    ci_usuario = request.values.get("ci_usuario")
+    id_usuario = int(ci_usuario)
+    passw = request.values.get("contra_usuario")
+    
+    cliente = clientes.find({"_id": id_usuario})
+    lista_cliente = list(cliente)
+
+    if len(lista_cliente) != 0:
+        cliente = lista_cliente[0]  
+        if cliente["_id"] == id_usuario and cliente["contraCli"] == passw:
+            return redirect(f"/mostrarCats/{id_usuario}")
+        else:
+            return redirect("/")  
+    else:
+        return redirect("/")
+
+@app.route("/mostrarCats/<id>/", methods=['GET'])
 def mostrar_cats(id):
     id_usuario=int(id)
     cliente_l=clientes.find({"_id":id_usuario})
     #print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
     return render_template("Categorias.html",cliente=cliente_l)
 
-@app.route("/datosCliente/<id>/", methods=['GET','POST'])
+@app.route("/datosCliente/<id>/", methods=['GET'])
 def datos_cliente(_id):
     _id=int(_id)
     cliente_l=clientes.find({"_id":_id})
     print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
     return render_template("DatosCliente.html",cliente=cliente_l)
 
-@app.route("/mostrarNegs/<id>/",methods=['GET','POST']) #get para mandar 
-@app.route("/mostrarNegs/<id>/<categoria>/",methods=['GET','POST']) #get para mandar 
+@app.route("/mostrarNegs/<id>/",methods=['GET']) #get para mandar 
+@app.route("/mostrarNegs/<id>/<categoria>/",methods=['GET']) #get para mandar 
 def mostrar_negs(_id,categoria=None):
     DicProductos.clear()
     #print("Id: ",id)
@@ -72,7 +77,7 @@ def mostrar_negs(_id,categoria=None):
     #print("Id: ",cliente_l[0]["_id"]," pass:",cliente_l[0]["contraCli"])
     return render_template("negocios.html",cliente=cliente_l,negocios=negocios_l,categoria=categoria)
 
-@app.route("/buscar/<id>/",methods=['GET','POST'])
+@app.route("/buscar/<id>/",methods=['GET'])
 def buscar (_id):    
     _id=int(_id)
     criterio=request.values.get("search")
@@ -87,7 +92,7 @@ def buscar (_id):
 ############################# PARTE MIA JUAN PABLO ############################
 
 
-@app.route("/mostrarProds/<idCli>/<float:idNeg>/",methods=['GET','POST'])
+@app.route("/mostrarProds/<idCli>/<float:idNeg>/",methods=['GET'])
 def mostrarProds (idCli,idNeg):  
 
     idCli=int(idCli)
@@ -142,7 +147,7 @@ def agregar_producto(idProd, cantidad, estado, idCli, idNeg):
 
         
 
-@app.route("/AgregarProd/<idCli>/<float:idNeg>/<float:idProd>/<cantidad>/<estado>",methods=['GET','POST'])   
+@app.route("/AgregarProd/<idCli>/<float:idNeg>/<float:idProd>/<cantidad>/<estado>",methods=['POST'])   
 def leerProducto(idCli,idNeg,idProd,cantidad,estado):
     cantidad=int(cantidad)
     if(cantidad==1):
@@ -242,24 +247,25 @@ def update():
     return redirect("/datosCliente/"+format(ci))
 
 ################################# VISTA NEGOCIO ############################################
-@app.route("/loginNeg",methods=['GET','POST']) #get para mandar 
-def loginNegocio ():
-    if request.method =='POST':
-        nombreNeg=request.values.get("nombre_neg")
-        passw=request.values.get("contra_neg")
-        negocio=negocios.find({"Nombre":nombreNeg})
-        lista_negocio=list(negocio)
-        #print(len(lista_cliente))
-        if len(lista_negocio)!= 0:
-            negocio=negocios.find({"Nombre":nombreNeg})
-            if(negocio[0]["Nombre"]==nombreNeg and negocio[0]["contraNeg"]==passw): #validaciones
-                return redirect("/mostrarProdsNeg/"+format(nombreNeg)) #implementar
-            else:
-                #flash(mensaje,"ERROR")
-                return redirect("/loginNeg") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
-        else:
-            return redirect("/loginNeg")
+@app.route("/loginNeg", methods=['GET'])
+def mostrar_login_negocio():
     return render_template("IniciarSesionNegocio.html")
+
+LOGIN_NEG_URL = "/loginNeg" 
+
+@app.route(LOGIN_NEG_URL, methods=['POST'])  
+def login_negocio():
+    nombreNeg = request.values.get("nombre_neg")
+    passw = request.values.get("contra_neg")
+    
+    negocio = negocios.find_one({"Nombre": nombreNeg})
+    if negocio:
+        if negocio["Nombre"] == nombreNeg and negocio["contraNeg"] == passw:
+            return redirect(f"/mostrarProdsNeg/{nombreNeg}") 
+        else:
+            return redirect(LOGIN_NEG_URL) 
+    else:
+        return redirect(LOGIN_NEG_URL) 
 
 @app.route("/registrarNeg",methods=['GET'])
 def registrarNegocio ():
@@ -282,7 +288,7 @@ def insertarNegocio ():
     else:
         return redirect("/registrarNeg")
     
-@app.route("/mostrarProdsNeg/<nombreNeg>/",methods=['GET','POST'])
+@app.route("/mostrarProdsNeg/<nombreNeg>/",methods=['GET'])
 def mostrarProductosNegocio (nombreNeg):  
     negocio_p=negocios.find({"Nombre":nombreNeg})
     pipeline = [{"$match":{"Nombre":nombreNeg}},{"$unwind":PRODUCTOS_COLLECTION},{"$project":{"_id":0,"Productos":1}}]  
@@ -294,21 +300,23 @@ def validarEstadoProd(estado):
         return "No Disponible"
     else:
         return "Disponible"
-    
-@app.route("/actualizarEst/<nombreNeg>/<float:codProd>/<estado>/",methods=['GET','POST'])
+
+MOSTRAR_PRODS_NEG_URL = "/mostrarProdsNeg/"
+
+@app.route("/actualizarEst/<nombreNeg>/<float:codProd>/<estado>/",methods=['POST'])
 def actualizarEstadoProd (nombreNeg,codProd,estado):  
     codProd=float(codProd)
     estado=validarEstadoProd(estado)
     negocios.update_one({"Nombre":nombreNeg,"Productos.codProd":codProd},{"$set":{"Productos.$.Estado":estado}})
-    return redirect("/mostrarProdsNeg/"+format(nombreNeg))
+    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombreNeg))
 
-@app.route("/borrarProd/<nombreNeg>/<float:codProd>/",methods=['GET','POST'])
+@app.route("/borrarProd/<nombreNeg>/<float:codProd>/",methods=['POST'])
 def borrarProductos (nombreNeg,codProd):  
     codProd=float(codProd)
     negocios.update_one({"Nombre":nombreNeg},{"$pull":{"Productos":{"codProd":codProd}}})
-    return redirect("/mostrarProdsNeg/"+format(nombreNeg))
+    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombreNeg))
     
-@app.route("/datosNegocio/<nombreNeg>/", methods=['GET','POST'])
+@app.route("/datosNegocio/<nombreNeg>/", methods=['GET'])
 def datosNegocio(nombreNeg):
     negocio_p=negocios.find({"Nombre":nombreNeg})
     return render_template("DatosNegocio.html",negocio=negocio_p)
@@ -360,7 +368,7 @@ def detallePedido (idNeg,idPedido):
 ##############################################################################################
 
 ################################# VISTA REPARTIDOR ############################################
-@app.route("/mostrarPedidosDisp/<idRep>/",methods=['GET','POST'])
+@app.route("/mostrarPedidosDisp/<idRep>/",methods=['GET'])
 def mostrarPedidosDisp (idRep):  
     idRep=int(idRep)
     repartidor=repartidores.find({"_id":idRep})
@@ -379,7 +387,7 @@ def validarEstadoPed(estado):
     else:
         return "entregado"
     
-@app.route("/actualizarEstRep/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['GET','POST'])
+@app.route("/actualizarEstRep/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['POST'])
 def actualizarEstadoRepartidor(idPedido,idRep,estadoPed,estadoRep):  
     idPedido=float(idPedido)
     idRep=int(idRep)
@@ -389,7 +397,7 @@ def actualizarEstadoRepartidor(idPedido,idRep,estadoPed,estadoRep):
     pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
     return redirect("/mostrarPedidosDisp/"+format(idRep))
 
-@app.route("/finalizarPedido/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['GET','POST'])
+@app.route("/finalizarPedido/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['POST'])
 def finalizarPedido(idPedido,idRep,estadoPed,estadoRep):  
     idPedido=float(idPedido)
     idRep=int(idRep)
@@ -399,27 +407,30 @@ def finalizarPedido(idPedido,idRep,estadoPed,estadoRep):
     pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
     return redirect("/mostrarPedidosDisp/"+format(idRep))
 
-
-@app.route("/loginRep",methods=['GET','POST']) #get para mandar 
-def loginRepartidor():
-    if request.method =='POST':
-        _id=request.values.get("ci_rep")
-        _id=int(_id)
-        passw=request.values.get("contra_rep")
-        repartidor=repartidores.find({"_id":_id})
-        lista_repartidores=list(repartidor)
-        #print(len(lista_cliente))
-        if len(lista_repartidores)!= 0:
-            repartidor=repartidores.find({"_id":_id})
-            if(repartidor[0]["_id"]==_id and repartidor[0]["contra"]==passw):#validaciones
-                #print("Id: ",cliente[0]["_id"]," pass:",cliente[0]["contraCli"])
-                return redirect("/mostrarPedidosDisp/"+format(_id))
-            else:
-                #flash(mensaje,"ERROR")
-                return redirect("/loginRep") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
-        else:
-            return redirect("/")
+# Ruta para mostrar el formulario de inicio de sesión del repartidor (GET)
+@app.route("/loginRep", methods=['GET'])
+def mostrar_login_repartidor():
     return render_template("IniciarSesionRepartidor.html")
+
+@app.route("/loginRep",methods=['POST']) #get para mandar 
+def loginRepartidor():
+    _id=request.values.get("ci_rep")
+    _id=int(_id)
+    passw=request.values.get("contra_rep")
+    repartidor=repartidores.find({"_id":_id})
+    lista_repartidores=list(repartidor)
+    #print(len(lista_cliente))
+    if len(lista_repartidores)!= 0:
+        repartidor=repartidores.find({"_id":_id})
+        if(repartidor[0]["_id"]==_id and repartidor[0]["contra"]==passw):#validaciones
+            #print("Id: ",cliente[0]["_id"]," pass:",cliente[0]["contraCli"])
+            return redirect("/mostrarPedidosDisp/"+format(_id))
+        else:
+            #mensaje="Usuario o contraseña incorrectos, vuelva a ingresar sus datos o registrese!"
+            #flash(mensaje,"ERROR")
+            return redirect("/loginRep") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
+    else:
+        return redirect("/")
 
 @app.route("/registrarRep",methods=['GET'])
 def registrarRepartidor ():
@@ -444,7 +455,7 @@ def insertarRepartidor ():
     else:
         return redirect("/registrarRep")
     
-@app.route("/datosRepartidor/<id>/", methods=['GET','POST'])
+@app.route("/datosRepartidor/<id>/", methods=['GET'])
 def datosRepartidor(_id):
     _id=int(_id)
     repartidor_l=repartidores.find({"_id":_id})
