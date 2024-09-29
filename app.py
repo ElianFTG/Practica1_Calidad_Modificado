@@ -432,8 +432,6 @@ def loginRepartidor():
             #print("Id: ",cliente[0]["_id"]," pass:",cliente[0]["contraCli"])
             return redirect(direccion_pedidos_disponibles+format(_id))
         else:
-            #mensaje="Usuario o contraseña incorrectos, vuelva a ingresar sus datos o registrese!"
-            #flash(mensaje,"ERROR")
             return redirect("/loginRep") #que vuelva a pedir que se registre pero con una advertencia de que el usuario o contrasenia que ingreso no existen
     else:
         return redirect("/")
