@@ -1036,7 +1036,6 @@ ol {
   line-height: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
-  font-style: inherit;
   font-weight: inherit;
   text-decoration: none;
   border: 0 none transparent;
@@ -20705,7 +20704,6 @@ section.u-dialog-block:not(.u-dialog-open) {
 .u-gallery-nav-next,
 .u-carousel-control-prev,
 .u-carousel-control-next {
-  color: inherit;
   font-size: inherit;
   font-family: inherit;
   line-height: inherit;
@@ -20714,10 +20712,8 @@ section.u-dialog-block:not(.u-dialog-open) {
   font-style: inherit;
   font-weight: inherit;
   text-decoration: none;
-  border: 0 none transparent;
   outline-width: 0;
   background-color: transparent;
-  margin: 0;
   -webkit-text-decoration-skip: objects;
   border: none;
   margin: 0 !important;
