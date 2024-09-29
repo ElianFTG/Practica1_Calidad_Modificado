@@ -372,9 +372,15 @@ html {
   font-family: sans-serif;
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: 16px;
 }
 body {
   margin: 0;
+  height: auto;
+  min-height: 100%;
 }
 article,
 aside,
@@ -1846,6 +1852,8 @@ a {
   align-items: center;
   margin-bottom: 0;
   flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
 }
 .u-form-horizontal .u-form-group.u-label-top:not(.u-form-submit) {
   width: 100%;
@@ -1859,6 +1867,7 @@ a {
 .u-form-horizontal .u-form-submit {
   display: flex;
   flex-grow: 0 !important;
+  margin-right: 0 !important;
 }
 .u-form-horizontal .u-form-submit label {
   display: none !important;
@@ -1893,10 +1902,6 @@ a {
   margin-top: 1px;
   margin-bottom: 1px;
   position: relative;
-}
-.u-form-horizontal .u-form-group:not(.u-label-top) {
-  flex-shrink: 1;
-  min-width: 0;
 }
 /* ********  spacing ******** */
 .u-form-horizontal.u-form-spacing-50 .u-form-group {
@@ -2135,9 +2140,6 @@ a {
 .u-form :-ms-input-placeholder {
   opacity: 1;
 }
-.u-form-horizontal .u-form-submit {
-  margin-right: 0 !important;
-}
 .u-form-vertical .u-form-submit {
   margin-bottom: 0 !important;
 }
@@ -2213,14 +2215,12 @@ a {
   flex-direction: column;
   max-width: 100%;
 }
-.u-form-file-upload .u-file-remove {
-  margin-left: 0.5em;
-}
 .u-form-file-upload .u-upload-button {
   margin: 0 0.5em 0 0;
 }
 .u-form-file-upload .u-file-remove {
   cursor: pointer;
+  margin-left: 0.5em;
 }
 .u-form-file-upload .u-file-max {
   flex-basis: 100%;
@@ -2292,15 +2292,6 @@ a {
 *:before,
 *:after {
   box-sizing: border-box;
-}
-html {
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-body {
-  height: auto;
-  min-height: 100%;
 }
 body,
 aside,
@@ -16553,9 +16544,6 @@ div.u-video,
 }
 .u-flip-horizontal.u-flip-vertical.u-rotate-270 {
   transform: scaleX(-1) scaleY(-1) rotate(270deg) translate(0, -100%);
-}
-html {
-  font-size: 16px;
 }
 .u-body {
   font-size: 1rem;
@@ -38349,7 +38337,3 @@ a.u-link.u-text-hover-grey-90:hover {
     width: 340px;
   }
 }
-
- /*begin-variables base-font-size*/ 
- html { font-size: 16px; }
- /*end-variables base-font-size*/
