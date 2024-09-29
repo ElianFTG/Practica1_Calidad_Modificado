@@ -98,7 +98,7 @@
 
   .fr-view span.fr-emoticon {
     font-weight: normal;
-    font-family: "Apple Color Emoji","Segoe UI Emoji","NotoColorEmoji","Segoe UI Symbol","Android Emoji","EmojiSymbols";
+    font-family: "Apple Color Emoji","Segoe UI Emoji","NotoColorEmoji","Segoe UI Symbol","Android Emoji","EmojiSymbols", sans-serif;
     display: inline;
     line-height: 0; }
     .fr-view span.fr-emoticon.fr-emoticon-img {
@@ -16738,7 +16738,7 @@ p {
   font-family: 'Playfair Display', serif !important;
 }
 .u-font-lobster.u-custom-font {
-  font-family: Lobster, display !important;
+  font-family: Lobster, display, sans-serif !important;
 }
 .u-rectangle {
   border-radius: 0;
@@ -17284,13 +17284,13 @@ blockquote {
   padding: 10px 20px;
   padding-left: 0;
   margin: 0 0 20px;
+  border-width: 4px;
   border-left-width: 0;
   border-top-width: 0 !important;
   border-right-width: 0 !important;
   border-bottom-width: 0 !important;
   border-style: solid;
   font-style: italic;
-  border-width: 4px;
   margin-top: 20px;
   margin-bottom: 20px;
 }
@@ -19572,7 +19572,7 @@ a.pswp__share--download:hover {
 .animated.slower {
   animation-duration: 3s;
 }
-@media (print), (prefers-reduced-motion) {
+@media (prefers-reduced-motion) {
   .animated {
     animation: unset !important;
     transition: none !important;
