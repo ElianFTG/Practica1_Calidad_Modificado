@@ -99,13 +99,13 @@ def buscar (_id):
 
 
 @app.route("/mostrarProds/<idCli>/<float:idNeg>/",methods=['GET'])
-def mostrar_prods (idCli,idNeg):  
+def mostrar_prods (id_cli,id_neg):  
 
-    idCli=int(idCli)
-    idNeg = float(idNeg)
-    cliente_p=clientes.find({"_id":idCli})
-    negocio_p=negocios.find({"_id":idNeg})
-    pipeline = [{pipeline_match:{"_id":idNeg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.Estado":"Disponible"}},{pipeline_match:{"_id":0,"Productos":1}}]  
+    id_cli=int(id_cli)
+    id_neg = float(id_neg)
+    cliente_p=clientes.find({"_id":id_cli})
+    negocio_p=negocios.find({"_id":id_neg})
+    pipeline = [{pipeline_match:{"_id":id_neg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.Estado":"Disponible"}},{pipeline_match:{"_id":0,"Productos":1}}]  
     productos_p=list(negocios.aggregate(pipeline))
     return render_template("Productos.html",cliente=cliente_p,negocio=negocio_p,productos=productos_p)
 
@@ -132,17 +132,16 @@ def agregar_nuevo_producto(id_cli, id_neg, id_prod, cantidad):
     id_cli=int(id_cli)
     id_neg=float(id_neg)
     negocio_p=negocios.find({"_id":id_neg})
-    prodNom=negocio_p[0]["Nombre"]
+    prod_nom=negocio_p[0]["Nombre"]
     id_prod = float(id_prod)
     cantidad = int(cantidad)
-    pipeline = [{pipeline_match:{"_id":id_neg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.codProd":id_prod}},{consulta_project:{"_id":0,"NombreProd":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
+    pipeline = [{pipeline_match:{"_id":id_neg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{pipeline_match:{"Productos.cod_prod":id_prod}},{consulta_project:{"_id":0,"nombre_prod":"$Productos.Nombre","Precio":"$Productos.Precio","Productos":1}}]  
     producto=list(negocios.aggregate(pipeline))
     for produ in producto:
-        #print(produ["NombreProd"])
-        prodNom=produ["NombreProd"]
-        precioProd=produ["Precio"]
-    print(prodNom,precioProd)
-    arry=[cantidad,precioProd,prodNom]
+        prod_nom=produ["nombre_prod"]
+        precio_prod=produ["Precio"]
+    print(prod_nom,precio_prod)
+    arry=[cantidad,precio_prod,prod_nom]
     DicProductos[id_prod] = arry
 
 def agregar_producto(id_prod, cantidad, estado, id_cli, id_neg):
@@ -153,13 +152,13 @@ def agregar_producto(id_prod, cantidad, estado, id_cli, id_neg):
 
         
 
-@app.route("/AgregarProd/<idCli>/<float:idNeg>/<float:idProd>/<cantidad>/<estado>",methods=['POST'])   
-def leer_producto(idCli,idNeg,idProd,cantidad,estado):
+@app.route("/AgregarProd/<idCli>/<float:idNeg>/<float:id_prod>/<cantidad>/<estado>",methods=['POST'])   
+def leer_producto(id_cli,id_neg,id_prod,cantidad,estado):
     cantidad=int(cantidad)
     if(cantidad==1):
-        agregar_producto(idProd, cantidad, estado, idCli, idNeg)
+        agregar_producto(id_prod, cantidad, estado, id_cli, id_neg)
     elif(cantidad==-1):
-        remover_producto(idProd, cantidad)
+        remover_producto(id_prod, cantidad)
     print(DicProductos) 
     return redirect(request.referrer)
 
@@ -169,11 +168,11 @@ def leer_producto(idCli,idNeg,idProd,cantidad,estado):
 ################################## PARTE ADRIAN ##################################
 
 @app.route("/mostrarPedido/<idCli>/<float:idNeg>/",methods=['GET'])
-def mostrar_pedido (idCli,idNeg):    
-    idCli=int(idCli)
-    idNeg=float(idNeg)
-    cliente=clientes.find({"_id":idCli})
-    negocio=negocios.find({"_id":idNeg})
+def mostrar_pedido (id_cli,id_neg):    
+    id_cli=int(id_cli)
+    id_neg=float(id_neg)
+    cliente=clientes.find({"_id":id_cli})
+    negocio=negocios.find({"_id":id_neg})
     total=calcular_total()
     if (len(DicProductos)) == 0:
         return redirect(request.referrer)
@@ -187,24 +186,23 @@ def calcular_total ():
     return total
  
 @app.route("/insertarPedido/<idCli>/<float:idNeg>/",methods=['GET'])
-def insertar_pedido (idCli,idNeg):    
-    idCli=int(idCli)
-    idNeg=float(idNeg)
+def insertar_pedido (id_cli,id_neg):    
+    id_cli=int(id_cli)
+    id_neg=float(id_neg)
     total=calcular_total()
-    cliente=clientes.find({"_id":idCli})
-    negocio=negocios.find({"_id":idNeg})
+    cliente=clientes.find({"_id":id_cli})
+    negocio=negocios.find({"_id":id_neg})
 
     repartidor=repartidores.find({"estado":"D"})
     if len(list(repartidor))!= 0:
         repartidor=repartidores.find({"estado":"D"})
-        idRep=repartidor[0]["_id"]
+        id_rep=repartidor[0]["_id"]
         
         cont=contador.find({"_id":1})
         valor=cont[0]["contador"]
-        pedidos.insert_one({"_id":valor,"estadoPed":"pendiente","montoTotal":total,"cliente":idCli,"negocioId":idNeg,"repartidorId":idRep,"productos":[]})
+        pedidos.insert_one({"_id":valor,"estado_ped":"pendiente","montoTotal":total,"cliente":id_cli,"negocioId":id_neg,"repartidorId":id_rep,"productos":[]})
         for producto in DicProductos:
-            #produ="productos":['codProd':producto,'Nombre':DicProductos[producto][2],'Precio':DicProductos[producto][1],'Cantidad':DicProductos[producto][0]]
-            pedidos.update_one({"_id":valor},{"$push":{"productos":{'codProd':producto,'Nombre':DicProductos[producto][2],'Precio':DicProductos[producto][1],'Cantidad':DicProductos[producto][0]}}})
+            pedidos.update_one({"_id":valor},{"$push":{"productos":{'cod_prod':producto,'Nombre':DicProductos[producto][2],'Precio':DicProductos[producto][1],'Cantidad':DicProductos[producto][0]}}})
         contador.update_one({"_id":1},{"$inc":{"contador":1}})
         return render_template("recibo.html",cliente=cliente, negocio=negocio, productos=DicProductos, total=total, repartidor=repartidor)
     return redirect(request.referrer)
@@ -261,13 +259,13 @@ LOGIN_NEG_URL = "/loginNeg"
 
 @app.route(LOGIN_NEG_URL, methods=['POST'])  
 def login_negocio():
-    nombreNeg = request.values.get("nombre_neg")
+    nombre_neg = request.values.get("nombre_neg")
     passw = request.values.get("contra_neg")
     
-    negocio = negocios.find_one({"Nombre": nombreNeg})
+    negocio = negocios.find_one({"Nombre": nombre_neg})
     if negocio:
-        if negocio["Nombre"] == nombreNeg and negocio["contraNeg"] == passw:
-            return redirect(f"/mostrarProdsNeg/{nombreNeg}") 
+        if negocio["Nombre"] == nombre_neg and negocio["contraNeg"] == passw:
+            return redirect(f"/mostrarProdsNeg/{nombre_neg}") 
         else:
             return redirect(LOGIN_NEG_URL) 
     else:
@@ -279,8 +277,8 @@ def registrar_negocio ():
 
 @app.route("/insertarNeg",methods=['POST']) #post para recibir 
 def insertar_negocio ():
-    nombreNeg=request.values.get("nombre_neg")
-    negocio=negocios.find({"Nombre":nombreNeg})
+    nombre_neg=request.values.get("nombre_neg")
+    negocio=negocios.find({"Nombre":nombre_neg})
     lista_negocio=list(negocio)
     if len(lista_negocio) == 0:
         categ=request.values.get("categoria")
@@ -288,16 +286,16 @@ def insertar_negocio ():
         #id tiene que ser igual autonumerico como pedido
         cont=contador.find({"_id":1})
         valor=cont[0]["contador2"]
-        negocios.insert_one({"_id":valor,"Nombre":nombreNeg,"Categoria":categ,"contraNeg":contra,"Productos":[]})
+        negocios.insert_one({"_id":valor,"Nombre":nombre_neg,"Categoria":categ,"contraNeg":contra,"Productos":[]})
         print(mensaje_registrado_exitoso)
         return redirect("/loginNeg")
     else:
         return redirect("/registrarNeg")
     
 @app.route("/mostrarProdsNeg/<nombreNeg>/",methods=['GET'])
-def mostrar_productos_negocio (nombreNeg):  
-    negocio_p=negocios.find({"Nombre":nombreNeg})
-    pipeline = [{pipeline_match:{"Nombre":nombreNeg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{consulta_project:{"_id":0,"Productos":1}}]  
+def mostrar_productos_negocio (nombre_neg):  
+    negocio_p=negocios.find({"Nombre":nombre_neg})
+    pipeline = [{pipeline_match:{"Nombre":nombre_neg}},{pipeline_unwind:PRODUCTOS_COLLECTION},{consulta_project:{"_id":0,"Productos":1}}]  
     productos_p=list(negocios.aggregate(pipeline))
     return render_template("ProductosNegocio.html",negocio=negocio_p,productos=productos_p)
   
@@ -309,76 +307,76 @@ def validar_estado_prod(estado):
 
 MOSTRAR_PRODS_NEG_URL = "/mostrarProdsNeg/"
 
-@app.route("/actualizarEst/<nombreNeg>/<float:codProd>/<estado>/",methods=['POST'])
-def actualizar_estado_prod (nombreNeg,codProd,estado):  
-    codProd=float(codProd)
+@app.route("/actualizarEst/<nombreNeg>/<float:cod_prod>/<estado>/",methods=['POST'])
+def actualizar_estado_prod (nombre_neg,cod_prod,estado):  
+    cod_prod=float(cod_prod)
     estado=validar_estado_prod(estado)
-    negocios.update_one({"Nombre":nombreNeg,"Productos.codProd":codProd},{"$set":{"Productos.$.Estado":estado}})
-    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombreNeg))
+    negocios.update_one({"Nombre":nombre_neg,"Productos.cod_prod":cod_prod},{"$set":{"Productos.$.Estado":estado}})
+    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombre_neg))
 
-@app.route("/borrarProd/<nombreNeg>/<float:codProd>/",methods=['POST'])
-def borrar_productos (nombreNeg,codProd):  
-    codProd=float(codProd)
-    negocios.update_one({"Nombre":nombreNeg},{"$pull":{"Productos":{"codProd":codProd}}})
-    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombreNeg))
+@app.route("/borrarProd/<nombreNeg>/<float:cod_prod>/",methods=['POST'])
+def borrar_productos (nombre_neg,cod_prod):  
+    cod_prod=float(cod_prod)
+    negocios.update_one({"Nombre":nombre_neg},{"$pull":{"Productos":{"cod_prod":cod_prod}}})
+    return redirect(MOSTRAR_PRODS_NEG_URL +format(nombre_neg))
     
 @app.route("/datosNegocio/<nombreNeg>/", methods=['GET'])
-def datos_negocio(nombreNeg):
-    negocio_p=negocios.find({"Nombre":nombreNeg})
+def datos_negocio(nombre_neg):
+    negocio_p=negocios.find({"Nombre":nombre_neg})
     return render_template("DatosNegocio.html",negocio=negocio_p)
 
 @app.route("/actualizarNeg", methods=['POST'])
 def update_negocio():
-    idNeg=request.values.get("IdNeg")
-    idNeg=float(idNeg)
-    nombre=request.values.get("nombreNeg")
+    id_neg=request.values.get("id_neg")
+    id_neg=float(id_neg)
+    nombre=request.values.get("nombre_neg")
     categoria=request.values.get("Categoria")
     contra=request.values.get("contra")
-    negocios.update_one({"_id":idNeg},{"$set":{"Nombre":nombre,"Categoria":categoria,"contraNeg":contra}})
+    negocios.update_one({"_id":id_neg},{"$set":{"Nombre":nombre,"Categoria":categoria,"contraNeg":contra}})
     #clientes.update({"_id":ci},{"$set":{"nombreCli":nombre,"apellidoCli":apellido,"celular":celular,"contraCli":contra}})
     print(mensaje_update_exitoso)
     return redirect("/datosNegocio/"+format(nombre))
 
 @app.route("/insertarProducto/<nombreNeg>/",methods=['POST']) #post para recibir 
-def insertar_producto (nombreNeg):
-    codProd=request.values.get("IdProd")
-    codProd=float(codProd)
-    nombreProd=request.values.get("NomProd")
+def insertar_producto (nombre_neg):
+    cod_prod=request.values.get("id_prod")
+    cod_prod=float(cod_prod)
+    nombre_prod=request.values.get("NomProd")
     desc=request.values.get("descProd")
     categoria=request.values.get("CateProd")
     estado=request.values.get("Estado")
     precio=request.values.get("Precio")
     precio=int(precio)
-    negocios.update_one({"Nombre":nombreNeg},{"$push":{"Productos":{"codProd":codProd,"Nombre":nombreProd,"Precio":precio,"Descripcion":desc,"Estado":estado,"Categoria":categoria}}})
+    negocios.update_one({"Nombre":nombre_neg},{"$push":{"Productos":{"cod_prod":cod_prod,"Nombre":nombre_prod,"Precio":precio,"Descripcion":desc,"Estado":estado,"Categoria":categoria}}})
     print("Insertado con exito")
-    return redirect("/mostrarProdsNeg/"+format(nombreNeg))
+    return redirect("/mostrarProdsNeg/"+format(nombre_neg))
 
 @app.route("/pedidosNeg/<float:idNeg>/",methods=['GET'])
-def pedidos_neg (idNeg):    
-    idNeg=float(idNeg)
-    listapedido=list(pedidos.find({"negocioId":idNeg}))
-    negocio=negocios.find({"_id":idNeg})
+def pedidos_neg (id_neg):    
+    id_neg=float(id_neg)
+    listapedido=list(pedidos.find({"negocioId":id_neg}))
+    negocio=negocios.find({"_id":id_neg})
     return render_template("PedidosNegocio.html",pedidos=listapedido,negocio=negocio)
 
 
-@app.route("/detallePedido/<float:idNeg>/<float:idPedido>",methods=['GET'])
-def detalle_pedido (idNeg,idPedido):    
-    idPedido=float(idPedido)
-    idNeg=float(idNeg)
-    pedido=list(pedidos.find({"_id":idPedido}))
+@app.route("/detallePedido/<float:idNeg>/<float:id_pedido>",methods=['GET'])
+def detalle_pedido (id_neg,id_pedido):    
+    id_pedido=float(id_pedido)
+    id_neg=float(id_neg)
+    pedido=list(pedidos.find({"_id":id_pedido}))
     productos=pedido[0]["productos"]
     print(pedido[0]["productos"])
     productos=list(productos)
-    negocio=negocios.find({"_id":idNeg})
+    negocio=negocios.find({"_id":id_neg})
     return render_template("DetallePedido.html",negocio=negocio,productos=productos)
 ##############################################################################################
 
 ################################# VISTA REPARTIDOR ############################################
-@app.route("/mostrarPedidosDisp/<idRep>/",methods=['GET'])
-def mostrar_pedidos_disp (idRep):  
-    idRep=int(idRep)
-    repartidor=repartidores.find({"_id":idRep})
-    pedidos_rep=pedidos.find({"repartidorId":idRep,"$or":[{"estadoPed":"pendiente"},{"estadoPed":"en camino"}]})
+@app.route("/mostrarPedidosDisp/<id_rep>/",methods=['GET'])
+def mostrar_pedidos_disp (id_rep):  
+    id_rep=int(id_rep)
+    repartidor=repartidores.find({"_id":id_rep})
+    pedidos_rep=pedidos.find({"repartidorId":id_rep,"$or":[{"estado_ped":"pendiente"},{"estado_ped":"en camino"}]})
     return render_template("PedidosDisponibles.html",repartidor=repartidor,pedidos=pedidos_rep)
 
 def validar_estado_rep(estado):
@@ -393,25 +391,25 @@ def validar_estado_ped(estado):
     else:
         return "entregado"
     
-@app.route("/actualizarEstRep/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['POST'])
-def actualizar_estado_repartidor(idPedido,idRep,estadoPed,estadoRep):  
-    idPedido=float(idPedido)
-    idRep=int(idRep)
-    estadoRep=validar_estado_rep(estadoRep)
-    estadoPed=validar_estado_ped(estadoPed)
-    repartidores.update_one({"_id":idRep},{"$set":{"estado":estadoRep}})
-    pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
-    return redirect(direccion_pedidos_disponibles+format(idRep))
+@app.route("/actualizarEstRep/<float:id_pedido>/<id_rep>/<estado_ped>/<estado_rep>/",methods=['POST'])
+def actualizar_estado_repartidor(id_pedido,id_rep,estado_ped,estado_rep):  
+    id_pedido=float(id_pedido)
+    id_rep=int(id_rep)
+    estado_rep=validar_estado_rep(estado_rep)
+    estado_ped=validar_estado_ped(estado_ped)
+    repartidores.update_one({"_id":id_rep},{"$set":{"estado":estado_rep}})
+    pedidos.update_one({"_id":id_pedido},{"$set":{"estado_ped":estado_ped}})
+    return redirect(direccion_pedidos_disponibles+format(id_rep))
 
-@app.route("/finalizarPedido/<float:idPedido>/<idRep>/<estadoPed>/<estadoRep>/",methods=['POST'])
-def finalizar_pedido(idPedido,idRep,estadoPed,estadoRep):  
-    idPedido=float(idPedido)
-    idRep=int(idRep)
-    estadoRep=validar_estado_rep(estadoRep)
-    estadoPed=validar_estado_ped(estadoPed)
-    repartidores.update_one({"_id":idRep},{"$set":{"estado":estadoRep}})
-    pedidos.update_one({"_id":idPedido},{"$set":{"estadoPed":estadoPed}})
-    return redirect(direccion_pedidos_disponibles+format(idRep))
+@app.route("/finalizarPedido/<float:id_pedido>/<id_rep>/<estado_ped>/<estado_rep>/",methods=['POST'])
+def finalizar_pedido(id_pedido,id_rep,estado_ped,estado_rep):  
+    id_pedido=float(id_pedido)
+    id_rep=int(id_rep)
+    estado_rep=validar_estado_rep(estado_rep)
+    estado_ped=validar_estado_ped(estado_ped)
+    repartidores.update_one({"_id":id_rep},{"$set":{"estado":estado_rep}})
+    pedidos.update_one({"_id":id_pedido},{"$set":{"estado_ped":estado_ped}})
+    return redirect(direccion_pedidos_disponibles+format(id_rep))
 
 # Ruta para mostrar el formulario de inicio de sesión del repartidor (GET)
 @app.route("/loginRep", methods=['GET'])
@@ -481,11 +479,11 @@ def update_rep():
     return redirect("/datosRepartidor/"+format(ci))
 
 
-@app.route("/pedidosRep/<idRep>/",methods=['GET'])
-def pedidos_rep(idRep):
-    idRep=int(idRep)
-    listapedido=list(pedidos.find({"repartidorId":idRep}))
-    repartidor=repartidores.find({"_id":idRep})
+@app.route("/pedidosRep/<id_rep>/",methods=['GET'])
+def pedidos_rep(id_rep):
+    id_rep=int(id_rep)
+    listapedido=list(pedidos.find({"repartidorId":id_rep}))
+    repartidor=repartidores.find({"_id":id_rep})
     return render_template("PedidosRepartidor.html",pedidos=listapedido, repartidor=repartidor)
 
 if __name__ == "__main__":
